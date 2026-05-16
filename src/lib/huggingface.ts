@@ -2,13 +2,22 @@ import type { BrandProfile } from '../types'
 
 const IMAGE_MODEL = 'black-forest-labs/FLUX.1-schnell'
 const TEXT_MODEL  = 'mistralai/Mistral-7B-Instruct-v0.3'
-const CHAT_API    = `https://api-inference.huggingface.co/models/${TEXT_MODEL}/v1/chat/completions`
+
+// In dev Vite proxies /hf-api/* → api-inference.huggingface.co (no CORS).
+// In prod the browser calls /api/hf-image (Vercel serverless, no CORS)
+// or the chat endpoint directly (HF supports CORS for that endpoint).
+const HF_DIRECT = 'https://api-inference.huggingface.co'
+const HF_DEV    = '/hf-api'       // proxied by Vite in dev
+const CHAT_BASE = import.meta.env.DEV ? HF_DEV : HF_DIRECT
+const CHAT_API  = `${CHAT_BASE}/models/${TEXT_MODEL}/v1/chat/completions`
 
 function getKey(): string {
   const k = import.meta.env.VITE_HUGGING_FACE_API_KEY
   if (!k) throw new Error('הוסיפי VITE_HUGGING_FACE_API_KEY ב-.env.local ואתחלי את השרת מחדש')
   return k
 }
+
+// ── Brand prompt builder ───────────────────────────────────────────────────
 
 const TONE_EN: Record<BrandProfile['tone'], string> = {
   professional: 'professional',
@@ -30,19 +39,41 @@ ${brand ? `Brand profile:
 Always write in Hebrew (עברית). Match the exact brand tone. Use emojis naturally.`
 }
 
+// ── Image generation ───────────────────────────────────────────────────────
+
 export async function generateImage(prompt: string): Promise<string> {
   const key = getKey()
-  const response = await fetch(
-    `https://api-inference.huggingface.co/models/${IMAGE_MODEL}`,
-    {
+
+  let response: Response
+
+  if (import.meta.env.DEV) {
+    // Dev: go through Vite proxy → HF API (no CORS)
+    response = await fetch(`${HF_DEV}/models/${IMAGE_MODEL}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ inputs: prompt }),
+    })
+    if (!response.ok) {
+      const err = await response.text().catch(() => response.statusText)
+      throw new Error(err)
     }
-  )
-  if (!response.ok) throw new Error(await response.text().catch(() => response.statusText))
+  } else {
+    // Prod: Vercel serverless function (no CORS, key stays server-side)
+    response = await fetch('/api/hf-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, model: IMAGE_MODEL }),
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }))
+      throw new Error(typeof err === 'object' ? err.error : String(err))
+    }
+  }
+
   return URL.createObjectURL(await response.blob())
 }
+
+// ── Text streaming ─────────────────────────────────────────────────────────
 
 export async function streamText(
   systemPrompt: string,
@@ -83,6 +114,8 @@ export async function streamText(
     }
   }
 }
+
+// ── Text generation (non-streaming) ───────────────────────────────────────
 
 export async function generateText(
   systemPrompt: string,
