@@ -1,5 +1,56 @@
 export type ModuleId = 'home' | 'calendar' | 'clients' | 'health' | 'projects' | 'quick'
 
+// ── Nutrition ─────────────────────────────────────────────────────────────
+export interface FoodItem {
+  id: string
+  name: string
+  unitLabel: string  // e.g. '100g', 'יחידה', 'כוס (240ml)'
+  calories: number   // per one unit
+  protein: number
+  carbs: number
+  fat: number
+}
+
+export interface LoggedFoodItem {
+  foodId: string
+  foodName: string
+  unitLabel: string
+  quantity: number   // multiplier (0.5, 1, 1.5, 2 …)
+  calories: number   // = food.calories * quantity
+  protein: number
+  carbs: number
+  fat: number
+}
+
+export interface MealEntry {
+  id: string
+  date: string       // YYYY-MM-DD
+  time: string       // HH:MM
+  name: string       // 'ארוחת בוקר' / 'ארוחת צהריים' / etc.
+  items: LoggedFoodItem[]
+  totalCalories: number
+  totalProtein: number
+  totalCarbs: number
+  totalFat: number
+}
+
+export interface SavedMeal {
+  id: string
+  name: string
+  items: LoggedFoodItem[]
+  totalCalories: number
+  totalProtein: number
+  totalCarbs: number
+  totalFat: number
+}
+
+export interface NutritionGoals {
+  calories: number
+  protein: number
+  carbs: number
+  fat: number
+}
+
 // Simple event used in dashboard quick-view
 export interface QuickEvent {
   id: string
