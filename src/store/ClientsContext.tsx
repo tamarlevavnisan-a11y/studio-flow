@@ -1,0 +1,117 @@
+import { createContext, useContext, useState, ReactNode } from 'react'
+import type { ClientDetail, Script, VideoContent, ClientFile, ScheduledPost } from '../types'
+import { mockClientDetails } from '../data/mockData'
+
+interface ClientsContextType {
+  clients: ClientDetail[]
+  getClient: (id: string) => ClientDetail | undefined
+  addClient: (data: Omit<ClientDetail, 'id' | 'scripts' | 'videos' | 'files' | 'posts' | 'createdAt'>) => void
+  updateClientStatus: (id: string, status: ClientDetail['status']) => void
+  addScript: (clientId: string, script: Omit<Script, 'id' | 'createdAt'>) => void
+  updateScript: (clientId: string, scriptId: string, updates: Partial<Script>) => void
+  deleteScript: (clientId: string, scriptId: string) => void
+  addVideo: (clientId: string, video: Omit<VideoContent, 'id' | 'createdAt'>) => void
+  updateVideo: (clientId: string, videoId: string, updates: Partial<VideoContent>) => void
+  deleteVideo: (clientId: string, videoId: string) => void
+  addFile: (clientId: string, file: Omit<ClientFile, 'id' | 'uploadedAt'>) => void
+  deleteFile: (clientId: string, fileId: string) => void
+  addPost: (clientId: string, post: Omit<ScheduledPost, 'id'>) => void
+  updatePost: (clientId: string, postId: string, updates: Partial<ScheduledPost>) => void
+  deletePost: (clientId: string, postId: string) => void
+}
+
+const ClientsContext = createContext<ClientsContextType | null>(null)
+
+let nextId = 100
+
+function uid() {
+  return String(++nextId)
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+export function ClientsProvider({ children }: { children: ReactNode }) {
+  const [clients, setClients] = useState<ClientDetail[]>(mockClientDetails)
+
+  function updateClient(id: string, fn: (c: ClientDetail) => ClientDetail) {
+    setClients(cs => cs.map(c => c.id === id ? fn(c) : c))
+  }
+
+  const ctx: ClientsContextType = {
+    clients,
+    getClient: (id) => clients.find(c => c.id === id),
+
+    addClient: (data) => {
+      const newClient: ClientDetail = {
+        ...data,
+        id: uid(),
+        createdAt: today(),
+        scripts: [],
+        videos: [],
+        files: [],
+        posts: [],
+      }
+      setClients(cs => [newClient, ...cs])
+    },
+
+    updateClientStatus: (id, status) => updateClient(id, c => ({ ...c, status })),
+
+    addScript: (clientId, script) => updateClient(clientId, c => ({
+      ...c,
+      scripts: [...c.scripts, { ...script, id: uid(), createdAt: today() }],
+    })),
+    updateScript: (clientId, scriptId, updates) => updateClient(clientId, c => ({
+      ...c,
+      scripts: c.scripts.map(s => s.id === scriptId ? { ...s, ...updates } : s),
+    })),
+    deleteScript: (clientId, scriptId) => updateClient(clientId, c => ({
+      ...c,
+      scripts: c.scripts.filter(s => s.id !== scriptId),
+    })),
+
+    addVideo: (clientId, video) => updateClient(clientId, c => ({
+      ...c,
+      videos: [...c.videos, { ...video, id: uid(), createdAt: today() }],
+    })),
+    updateVideo: (clientId, videoId, updates) => updateClient(clientId, c => ({
+      ...c,
+      videos: c.videos.map(v => v.id === videoId ? { ...v, ...updates } : v),
+    })),
+    deleteVideo: (clientId, videoId) => updateClient(clientId, c => ({
+      ...c,
+      videos: c.videos.filter(v => v.id !== videoId),
+    })),
+
+    addFile: (clientId, file) => updateClient(clientId, c => ({
+      ...c,
+      files: [...c.files, { ...file, id: uid(), uploadedAt: today() }],
+    })),
+    deleteFile: (clientId, fileId) => updateClient(clientId, c => ({
+      ...c,
+      files: c.files.filter(f => f.id !== fileId),
+    })),
+
+    addPost: (clientId, post) => updateClient(clientId, c => ({
+      ...c,
+      posts: [...c.posts, { ...post, id: uid() }],
+    })),
+    updatePost: (clientId, postId, updates) => updateClient(clientId, c => ({
+      ...c,
+      posts: c.posts.map(p => p.id === postId ? { ...p, ...updates } : p),
+    })),
+    deletePost: (clientId, postId) => updateClient(clientId, c => ({
+      ...c,
+      posts: c.posts.filter(p => p.id !== postId),
+    })),
+  }
+
+  return <ClientsContext.Provider value={ctx}>{children}</ClientsContext.Provider>
+}
+
+export function useClients() {
+  const ctx = useContext(ClientsContext)
+  if (!ctx) throw new Error('useClients must be used within ClientsProvider')
+  return ctx
+}

@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-page:       #FAF8F5;
+  --color-lavender:   #C4B5FD;
+  --color-lavender-light: #EDE9FE;
+  --color-dusty-pink: #FBCFE8;
+  --color-dusty-pink-light: #FDF2F8;
+  --color-mint:       #BBF7D0;
+  --color-mint-light: #ECFDF5;
+  --color-peach:      #FED7AA;
+  --color-peach-light:#FFF7ED;
+  --color-butter:     #FDE68A;
+  --color-butter-light:#FEFCE8;
+  --color-primary:    #F472B6;
+  --color-primary-dark:#EC4899;
+
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 6px 24px rgba(0, 0, 0, 0.10);
+
+  --radius-card: 20px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Heebo', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #FAF8F5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #1f1f2e;
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+}
+
+/* Smooth transitions everywhere */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+
+/* Input focus ring reset */
+input, select, textarea, button { font-family: inherit; }
