@@ -1,6 +1,6 @@
 import type { BrandProfile } from '../types'
 
-const IMAGE_MODEL = 'black-forest-labs/FLUX.1-schnell'
+const IMAGE_MODEL = 'stabilityai/stable-diffusion-2-1'
 const TEXT_MODEL  = 'mistralai/Mistral-7B-Instruct-v0.3'
 const CHAT_API    = `https://api-inference.huggingface.co/models/${TEXT_MODEL}/v1/chat/completions`
 
