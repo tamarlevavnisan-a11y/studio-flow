@@ -1,12 +1,20 @@
 import { useState } from 'react'
 import { Sparkles, MessageCircle, FileText, Image, Layers, Settings, Crown } from 'lucide-react'
 import { useClients } from '../store/ClientsContext'
-import ChatTab      from '../components/studio/ChatTab'
-import TextGenTab   from '../components/studio/TextGenTab'
-import ImageGenTab  from '../components/studio/ImageGenTab'
-import GraphicsTab  from '../components/studio/GraphicsTab'
+import ChatTab         from '../components/studio/ChatTab'
+import TextGenTab      from '../components/studio/TextGenTab'
+import ImageGenTab     from '../components/studio/ImageGenTab'
+import GraphicsTab     from '../components/studio/GraphicsTab'
 import BrandSetupModal from '../components/studio/BrandSetupModal'
 import type { ClientDetail, BrandProfile } from '../types'
+
+const TONE_HE: Record<string, string> = {
+  professional: 'מקצועי',
+  casual:       'קזואל',
+  fun:          'כיפי',
+  inspiring:    'מעורר השראה',
+  luxury:       'יוקרתי',
+}
 
 type Tab = 'chat' | 'text' | 'image' | 'graphics'
 
@@ -43,18 +51,25 @@ function ClientListItem({
       </div>
       <div className="flex-1 min-w-0 text-right">
         <p className="text-sm font-600 text-gray-800 truncate">{client.name}</p>
-        <div className="flex items-center gap-2 mt-0.5">
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
           <p className="text-[10px] text-gray-400">{client.platform}</p>
           {brand && (
-            <div className="flex gap-1">
-              <span className="w-3 h-3 rounded-full border border-white/50"
-                style={{ backgroundColor: brand.primaryColor }} />
-              <span className="w-3 h-3 rounded-full border border-white/50"
-                style={{ backgroundColor: brand.secondaryColor }} />
-            </div>
+            <>
+              <div className="flex gap-0.5">
+                <span className="w-2.5 h-2.5 rounded-full border border-white/50"
+                  style={{ backgroundColor: brand.primaryColor }} />
+                <span className="w-2.5 h-2.5 rounded-full border border-white/50"
+                  style={{ backgroundColor: brand.secondaryColor }} />
+              </div>
+              <span className="text-[9px] text-violet-500 font-600">{TONE_HE[brand.tone] ?? brand.tone}</span>
+              <span className="text-[9px] text-gray-400">{brand.fontHeading}</span>
+            </>
           )}
           {!brand && <span className="text-[9px] text-amber-500 font-600">ללא מותג</span>}
         </div>
+        {brand?.marketingMessage && (
+          <p className="text-[9px] text-gray-400 truncate mt-0.5 text-right">{brand.marketingMessage}</p>
+        )}
       </div>
     </button>
   )

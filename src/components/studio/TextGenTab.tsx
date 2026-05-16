@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Wand2, Copy, Check, Calendar, AlertCircle } from 'lucide-react'
-import { anthropic, buildSystemPrompt } from '../../lib/anthropic'
+import { generateText, hasHfKey } from '../../lib/huggingface'
 import { usePosts } from '../../store/PostsContext'
-import type { ClientDetail, PostContentType, PostPlatform } from '../../types'
+import type { ClientDetail, PostContentType, PostPlatform, BrandProfile } from '../../types'
 
 const CONTENT_TYPES = [
-  { type: 'post',    label: 'פוסט',      prompt: 'כתבי קפשן מרתק לפוסט אינסטגרם' },
-  { type: 'reel',   label: 'ריל',       prompt: 'כתבי תסריט מלא לריל של 30 שניות' },
-  { type: 'story',  label: 'סטורי',     prompt: 'כתבי טקסט לסדרת סטוריז (3 סלייידים)' },
-  { type: 'carousel', label: 'קרוסלה', prompt: 'כתבי תוכן ל-5 שקפי קרוסלה' },
+  { type: 'post',     label: 'פוסט',    prompt: 'Write an engaging Instagram caption' },
+  { type: 'reel',     label: 'ריל',     prompt: 'Write a full 30-second reel script' },
+  { type: 'story',    label: 'סטורי',   prompt: 'Write text for a 3-slide story series' },
+  { type: 'carousel', label: 'קרוסלה', prompt: 'Write content for a 5-slide carousel post' },
 ] as const
 
 const PLATFORMS: { value: PostPlatform; label: string }[] = [
@@ -17,12 +17,35 @@ const PLATFORMS: { value: PostPlatform; label: string }[] = [
   { value: 'Facebook',  label: '📘 Facebook' },
 ]
 
+const TONE_LABELS: Record<BrandProfile['tone'], string> = {
+  professional: 'professional',
+  casual:       'casual and friendly',
+  fun:          'fun and energetic',
+  inspiring:    'inspiring and motivational',
+  luxury:       'luxurious and sophisticated',
+}
+
+function buildPrompt(clientName: string, platform: string, brand?: BrandProfile): string {
+  return `You are an expert social media content creator for an Israeli social media manager.
+You create content for the client "${clientName}" on ${platform}.
+${brand ? `
+Brand profile:
+- Writing style: ${brand.writingStyle || 'authentic and engaging'}
+- Target audience: ${brand.targetAudience || 'general audience'}
+- Marketing message: ${brand.marketingMessage || ''}
+- Tone: ${TONE_LABELS[brand.tone] ?? brand.tone}
+- Keywords: ${brand.keywords?.join(', ') || ''}
+` : '(No brand profile set yet)'}
+Write ALWAYS in Hebrew (עברית). Match the exact brand tone and style.
+Use emojis naturally. Add relevant hashtags at the end.`
+}
+
 interface Props { client: ClientDetail }
 
 export default function TextGenTab({ client }: Props) {
   const { addPost } = usePosts()
   const [contentType, setContentType] = useState<PostContentType>('post')
-  const [platform, setPlatform] = useState<PostPlatform>(
+  const [platform, setPlatform]       = useState<PostPlatform>(
     (PLATFORMS.find(p => p.value === client.platform)?.value) ?? 'Instagram'
   )
   const [topic, setTopic]     = useState('')
@@ -31,36 +54,29 @@ export default function TextGenTab({ client }: Props) {
   const [copied, setCopied]   = useState(false)
   const [error, setError]     = useState('')
   const [scheduled, setScheduled] = useState(false)
-  const hasKey = !!import.meta.env.VITE_ANTHROPIC_KEY
+  const apiReady = hasHfKey()
 
   const brand  = client.brandProfile
   const accent = brand?.primaryColor ?? '#C084FC'
-  const system = buildSystemPrompt(client.name, platform, brand)
 
   async function generate() {
-    if (!anthropic) return
     setLoading(true)
     setResult('')
     setError('')
     setScheduled(false)
 
     const typeEntry = CONTENT_TYPES.find(t => t.type === contentType)!
-    const userPrompt = `${typeEntry.prompt} עבור ${client.name} בנושא: ${topic || 'תוכן כללי מותאם למותג'}.
-${brand?.keywords?.length ? `השתמשי במילות מפתח: ${brand.keywords.join(', ')}` : ''}
-הוסיפי האשטגים רלוונטיים בסוף.`
+    const userMsg   = `${typeEntry.prompt} for the brand "${client.name}" on ${platform}.
+Topic: ${topic || 'general brand content matching the brand profile'}
+${brand?.keywords?.length ? `Use these keywords: ${brand.keywords.join(', ')}` : ''}
+Write in Hebrew only. Add relevant hashtags at the end.`
 
     try {
-      const stream = await anthropic.messages.stream({
-        model: 'claude-opus-4-5',
-        max_tokens: 1024,
-        system,
-        messages: [{ role: 'user', content: userPrompt }],
-      })
-      for await (const chunk of stream) {
-        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-          setResult(r => r + chunk.delta.text)
-        }
-      }
+      const text = await generateText(
+        buildPrompt(client.name, platform, brand),
+        [{ role: 'user', content: userMsg }]
+      )
+      setResult(text)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'שגיאה ביצירת טקסט')
     } finally {
@@ -76,9 +92,8 @@ ${brand?.keywords?.length ? `השתמשי במילות מפתח: ${brand.keyword
 
   function schedulePost() {
     if (!result) return
-    const today = new Date()
-    const tmr = new Date(today)
-    tmr.setDate(today.getDate() + 1)
+    const tmr = new Date()
+    tmr.setDate(tmr.getDate() + 1)
     addPost({
       clientId: client.id, clientName: client.name,
       title: topic || `${contentType} — ${client.name}`,
@@ -94,10 +109,10 @@ ${brand?.keywords?.length ? `השתמשי במילות מפתח: ${brand.keyword
   return (
     <div className="space-y-4" dir="rtl">
 
-      {!hasKey && (
+      {!apiReady && (
         <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-700">
           <AlertCircle size={14} />
-          הוסיפי <code className="bg-amber-100 px-1">VITE_ANTHROPIC_KEY</code> ב-<code className="bg-amber-100 px-1">.env.local</code>
+          הוסיפי <code className="bg-amber-100 px-1">VITE_HUGGING_FACE_API_KEY</code> ב-<code className="bg-amber-100 px-1">.env.local</code>
         </div>
       )}
 
@@ -137,12 +152,14 @@ ${brand?.keywords?.length ? `השתמשי במילות מפתח: ${brand.keyword
         />
       </div>
 
-      {/* Generate button */}
-      <button onClick={generate} disabled={loading || !hasKey}
+      {/* Generate */}
+      <button onClick={generate} disabled={loading || !apiReady}
         className="w-full py-3 rounded-2xl text-white text-sm font-600 flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:opacity-90"
         style={{ background: `linear-gradient(135deg, ${accent}, ${brand?.secondaryColor ?? '#F472B6'})` }}>
         <Wand2 size={16} />
-        {loading ? 'יוצרת...' : `צרי ${CONTENT_TYPES.find(t => t.type === contentType)?.label}`}
+        {loading
+          ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> יוצרת...</>
+          : `צרי ${CONTENT_TYPES.find(t => t.type === contentType)?.label}`}
       </button>
 
       {/* Result */}

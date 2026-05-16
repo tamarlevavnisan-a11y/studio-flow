@@ -30,7 +30,7 @@ export default function ImageGenTab({ client }: Props) {
   const [productFile, setProductFile]     = useState<File | null>(null)
   const [productPreview, setProductPreview] = useState<string>('')
   const productRef = useRef<HTMLInputElement>(null)
-  const hasKey = !!import.meta.env.VITE_HF_TOKEN
+  const hasKey = !!import.meta.env.VITE_HUGGING_FACE_API_KEY
 
   function handleProductFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -93,7 +93,7 @@ export default function ImageGenTab({ client }: Props) {
       {!hasKey && (
         <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-700">
           <AlertCircle size={14} />
-          הוסיפי <code className="bg-amber-100 px-1">VITE_HF_TOKEN</code> ב-<code className="bg-amber-100 px-1">.env.local</code>
+          הוסיפי <code className="bg-amber-100 px-1">VITE_HUGGING_FACE_API_KEY</code> ב-<code className="bg-amber-100 px-1">.env.local</code>
           {' '}(חינמי ב-<a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" className="underline">huggingface.co</a>)
         </div>
       )}

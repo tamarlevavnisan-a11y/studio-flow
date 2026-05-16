@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, Copy, Check, AlertCircle } from 'lucide-react'
-import { streamChat, buildSystemPrompt } from '../../lib/anthropic'
+import { streamText, hasHfKey } from '../../lib/huggingface'
+import { buildSystemPrompt } from '../../lib/anthropic'
 import type { ClientDetail } from '../../types'
 
 interface Msg { role: 'user' | 'assistant'; content: string }
@@ -22,7 +23,7 @@ export default function ChatTab({ client }: Props) {
   const [copied, setCopied]     = useState<number | null>(null)
   const [error, setError]       = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
-  const hasKey = !!import.meta.env.VITE_ANTHROPIC_KEY
+  const apiReady  = hasHfKey()
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -43,7 +44,7 @@ export default function ChatTab({ client }: Props) {
     setMessages(m => [...m, assistantMsg])
 
     try {
-      await streamChat(newMsgs, system, (chunk) => {
+      await streamText(system, newMsgs, (chunk) => {
         setMessages(m => {
           const updated = [...m]
           updated[updated.length - 1] = {
@@ -54,7 +55,7 @@ export default function ChatTab({ client }: Props) {
         })
       })
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'שגיאה בחיבור ל-Claude')
+      setError(e instanceof Error ? e.message : 'שגיאה בחיבור ל-AI')
       setMessages(m => m.slice(0, -1))
     } finally {
       setLoading(false)
@@ -67,16 +68,16 @@ export default function ChatTab({ client }: Props) {
     setTimeout(() => setCopied(null), 1500)
   }
 
-  const brand = client.brandProfile
+  const brand  = client.brandProfile
   const accent = brand?.primaryColor ?? '#C084FC'
 
   return (
     <div className="flex flex-col h-[600px]">
 
-      {!hasKey && (
+      {!apiReady && (
         <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 text-sm text-amber-700">
           <AlertCircle size={15} className="flex-shrink-0" />
-          הוסיפי את המפתח <code className="bg-amber-100 px-1.5 rounded">VITE_ANTHROPIC_KEY</code> בקובץ <code className="bg-amber-100 px-1.5 rounded">.env.local</code>
+          הוסיפי את המפתח <code className="bg-amber-100 px-1.5 rounded">VITE_HUGGING_FACE_API_KEY</code> בקובץ <code className="bg-amber-100 px-1.5 rounded">.env.local</code>
         </div>
       )}
 
@@ -130,10 +131,10 @@ export default function ChatTab({ client }: Props) {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send(input))}
           placeholder={`שאלי כל דבר על תוכן של ${client.name}...`}
-          disabled={loading || !hasKey}
+          disabled={loading || !apiReady}
           className="flex-1 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 disabled:opacity-50 bg-white"
         />
-        <button onClick={() => send(input)} disabled={loading || !input.trim() || !hasKey}
+        <button onClick={() => send(input)} disabled={loading || !input.trim() || !apiReady}
           className="w-11 h-11 rounded-2xl flex items-center justify-center text-white disabled:opacity-40 transition-all hover:opacity-90 flex-shrink-0"
           style={{ background: `linear-gradient(135deg, ${accent}, ${brand?.secondaryColor ?? '#F472B6'})` }}>
           <Send size={16} />

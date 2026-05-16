@@ -62,3 +62,22 @@ CREATE POLICY "Users manage own posts"
 -- CREATE POLICY "Public read"
 --   ON storage.objects FOR SELECT
 --   USING (bucket_id = 'post-media');
+
+
+-- ── 4. טבלת פרופילי מותג ─────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.brand_profiles (
+  id         UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID    NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  client_id  TEXT    NOT NULL,
+  profile    JSONB   NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id, client_id)
+);
+
+ALTER TABLE public.brand_profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own brand profiles"
+  ON public.brand_profiles FOR ALL TO authenticated
+  USING  (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
