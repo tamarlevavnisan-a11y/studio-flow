@@ -30,7 +30,6 @@ export default function ImageGenTab({ client }: Props) {
   const [productFile, setProductFile]     = useState<File | null>(null)
   const [productPreview, setProductPreview] = useState<string>('')
   const productRef = useRef<HTMLInputElement>(null)
-  const hasKey = !!import.meta.env.VITE_HUGGING_FACE_API_KEY
 
   function handleProductFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -90,14 +89,6 @@ export default function ImageGenTab({ client }: Props) {
   return (
     <div className="space-y-4" dir="rtl">
 
-      {!hasKey && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-700">
-          <AlertCircle size={14} />
-          הוסיפי <code className="bg-amber-100 px-1">VITE_HUGGING_FACE_API_KEY</code> ב-<code className="bg-amber-100 px-1">.env.local</code>
-          {' '}(חינמי ב-<a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" className="underline">huggingface.co</a>)
-        </div>
-      )}
-
       {/* Product upload */}
       <div>
         <p className="text-xs font-600 text-gray-500 mb-2">העלאת מוצר לשילוב בתמונה (אופציונלי)</p>
@@ -151,7 +142,7 @@ export default function ImageGenTab({ client }: Props) {
       </div>
 
       {/* Generate */}
-      <button onClick={generate} disabled={loading || !hasKey}
+      <button onClick={generate} disabled={loading}
         className="w-full py-3.5 rounded-2xl text-white text-sm font-600 flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:opacity-90"
         style={{ background: `linear-gradient(135deg, ${accent}, ${brand?.secondaryColor ?? '#F472B6'})` }}>
         <Wand2 size={16} />

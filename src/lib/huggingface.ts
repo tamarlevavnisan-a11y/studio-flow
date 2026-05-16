@@ -1,32 +1,47 @@
-const HF_KEY      = import.meta.env.VITE_HUGGING_FACE_API_KEY
+import type { BrandProfile } from '../types'
+
 const IMAGE_MODEL = 'black-forest-labs/FLUX.1-schnell'
 const TEXT_MODEL  = 'mistralai/Mistral-7B-Instruct-v0.3'
 const CHAT_API    = `https://api-inference.huggingface.co/models/${TEXT_MODEL}/v1/chat/completions`
 
-export const hasHfKey = () => !!HF_KEY
+function getKey(): string {
+  const k = import.meta.env.VITE_HUGGING_FACE_API_KEY
+  if (!k) throw new Error('הוסיפי VITE_HUGGING_FACE_API_KEY ב-.env.local ואתחלי את השרת מחדש')
+  return k
+}
+
+const TONE_EN: Record<BrandProfile['tone'], string> = {
+  professional: 'professional',
+  casual:       'casual and friendly',
+  fun:          'fun and energetic',
+  inspiring:    'inspiring and motivational',
+  luxury:       'luxurious and sophisticated',
+}
+
+export function buildSystemPrompt(clientName: string, platform: string, brand?: BrandProfile): string {
+  return `You are an expert social media content creator for an Israeli social media manager.
+Create content for the client "${clientName}" on ${platform}.
+${brand ? `Brand profile:
+- Writing style: ${brand.writingStyle || 'authentic and engaging'}
+- Target audience: ${brand.targetAudience || 'general audience'}
+- Marketing message: ${brand.marketingMessage || ''}
+- Tone: ${TONE_EN[brand.tone] ?? brand.tone}
+- Keywords: ${brand.keywords?.join(', ') || ''}` : '(No brand profile set yet)'}
+Always write in Hebrew (עברית). Match the exact brand tone. Use emojis naturally.`
+}
 
 export async function generateImage(prompt: string): Promise<string> {
-  if (!HF_KEY) throw new Error('Hugging Face API key not configured')
-
+  const key = getKey()
   const response = await fetch(
     `https://api-inference.huggingface.co/models/${IMAGE_MODEL}`,
     {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${HF_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ inputs: prompt }),
     }
   )
-
-  if (!response.ok) {
-    const err = await response.text().catch(() => response.statusText)
-    throw new Error(err)
-  }
-
-  const blob = await response.blob()
-  return URL.createObjectURL(blob)
+  if (!response.ok) throw new Error(await response.text().catch(() => response.statusText))
+  return URL.createObjectURL(await response.blob())
 }
 
 export async function streamText(
@@ -34,14 +49,10 @@ export async function streamText(
   messages: { role: 'user' | 'assistant'; content: string }[],
   onChunk: (text: string) => void
 ): Promise<void> {
-  if (!HF_KEY) throw new Error('Hugging Face API key not configured')
-
+  const key = getKey()
   const response = await fetch(CHAT_API, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${HF_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: TEXT_MODEL,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
@@ -50,11 +61,7 @@ export async function streamText(
       stream: true,
     }),
   })
-
-  if (!response.ok) {
-    const err = await response.text().catch(() => response.statusText)
-    throw new Error(err)
-  }
+  if (!response.ok) throw new Error(await response.text().catch(() => response.statusText))
 
   const reader  = response.body?.getReader()
   if (!reader) return
@@ -81,14 +88,10 @@ export async function generateText(
   systemPrompt: string,
   messages: { role: 'user' | 'assistant'; content: string }[]
 ): Promise<string> {
-  if (!HF_KEY) throw new Error('Hugging Face API key not configured')
-
+  const key = getKey()
   const response = await fetch(CHAT_API, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${HF_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: TEXT_MODEL,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
@@ -96,12 +99,7 @@ export async function generateText(
       temperature: 0.75,
     }),
   })
-
-  if (!response.ok) {
-    const err = await response.text().catch(() => response.statusText)
-    throw new Error(err)
-  }
-
+  if (!response.ok) throw new Error(await response.text().catch(() => response.statusText))
   const data = await response.json()
   return (data.choices?.[0]?.message?.content ?? '') as string
 }

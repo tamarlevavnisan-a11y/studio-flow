@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Wand2, Copy, Check, Calendar, AlertCircle } from 'lucide-react'
-import { generateText, hasHfKey } from '../../lib/huggingface'
+import { generateText } from '../../lib/huggingface'
 import { usePosts } from '../../store/PostsContext'
 import type { ClientDetail, PostContentType, PostPlatform, BrandProfile } from '../../types'
 
@@ -54,8 +54,6 @@ export default function TextGenTab({ client }: Props) {
   const [copied, setCopied]   = useState(false)
   const [error, setError]     = useState('')
   const [scheduled, setScheduled] = useState(false)
-  const apiReady = hasHfKey()
-
   const brand  = client.brandProfile
   const accent = brand?.primaryColor ?? '#C084FC'
 
@@ -109,13 +107,6 @@ Write in Hebrew only. Add relevant hashtags at the end.`
   return (
     <div className="space-y-4" dir="rtl">
 
-      {!apiReady && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-700">
-          <AlertCircle size={14} />
-          הוסיפי <code className="bg-amber-100 px-1">VITE_HUGGING_FACE_API_KEY</code> ב-<code className="bg-amber-100 px-1">.env.local</code>
-        </div>
-      )}
-
       {/* Content type */}
       <div className="flex gap-2 flex-wrap">
         {CONTENT_TYPES.map(ct => (
@@ -153,7 +144,7 @@ Write in Hebrew only. Add relevant hashtags at the end.`
       </div>
 
       {/* Generate */}
-      <button onClick={generate} disabled={loading || !apiReady}
+      <button onClick={generate} disabled={loading}
         className="w-full py-3 rounded-2xl text-white text-sm font-600 flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:opacity-90"
         style={{ background: `linear-gradient(135deg, ${accent}, ${brand?.secondaryColor ?? '#F472B6'})` }}>
         <Wand2 size={16} />
