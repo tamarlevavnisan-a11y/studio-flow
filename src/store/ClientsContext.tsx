@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
-import type { ClientDetail, Script, VideoContent, ClientFile, ScheduledPost } from '../types'
+import type { ClientDetail, Script, VideoContent, ClientFile, BrandProfile } from '../types'
 import { mockClientDetails } from '../data/mockData'
 
 interface ClientsContextType {
   clients: ClientDetail[]
   getClient: (id: string) => ClientDetail | undefined
-  addClient: (data: Omit<ClientDetail, 'id' | 'scripts' | 'videos' | 'files' | 'posts' | 'createdAt'>) => void
+  addClient: (data: Omit<ClientDetail, 'id' | 'scripts' | 'videos' | 'files' | 'createdAt'>) => void
   updateClientStatus: (id: string, status: ClientDetail['status']) => void
   addScript: (clientId: string, script: Omit<Script, 'id' | 'createdAt'>) => void
   updateScript: (clientId: string, scriptId: string, updates: Partial<Script>) => void
@@ -15,9 +15,7 @@ interface ClientsContextType {
   deleteVideo: (clientId: string, videoId: string) => void
   addFile: (clientId: string, file: Omit<ClientFile, 'id' | 'uploadedAt'>) => void
   deleteFile: (clientId: string, fileId: string) => void
-  addPost: (clientId: string, post: Omit<ScheduledPost, 'id'>) => void
-  updatePost: (clientId: string, postId: string, updates: Partial<ScheduledPost>) => void
-  deletePost: (clientId: string, postId: string) => void
+  updateBrandProfile: (clientId: string, profile: BrandProfile) => void
 }
 
 const ClientsContext = createContext<ClientsContextType | null>(null)
@@ -51,7 +49,6 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         scripts: [],
         videos: [],
         files: [],
-        posts: [],
       }
       setClients(cs => [newClient, ...cs])
     },
@@ -93,18 +90,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       files: c.files.filter(f => f.id !== fileId),
     })),
 
-    addPost: (clientId, post) => updateClient(clientId, c => ({
-      ...c,
-      posts: [...c.posts, { ...post, id: uid() }],
-    })),
-    updatePost: (clientId, postId, updates) => updateClient(clientId, c => ({
-      ...c,
-      posts: c.posts.map(p => p.id === postId ? { ...p, ...updates } : p),
-    })),
-    deletePost: (clientId, postId) => updateClient(clientId, c => ({
-      ...c,
-      posts: c.posts.filter(p => p.id !== postId),
-    })),
+    updateBrandProfile: (clientId, profile) => updateClient(clientId, c => ({ ...c, brandProfile: profile })),
   }
 
   return <ClientsContext.Provider value={ctx}>{children}</ClientsContext.Provider>

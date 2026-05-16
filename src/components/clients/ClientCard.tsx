@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { FileText, Video, CalendarDays } from 'lucide-react'
+import { usePosts } from '../../store/PostsContext'
 import type { ClientDetail } from '../../types'
 
 const platformStyles: Record<string, { bg: string; text: string }> = {
@@ -28,9 +29,11 @@ interface Props { client: ClientDetail; index: number }
 
 export default function ClientCard({ client, index }: Props) {
   const navigate = useNavigate()
+  const { posts } = usePosts()
   const ps = platformStyles[client.platform] ?? { bg: 'bg-gray-100', text: 'text-gray-600' }
   const sc = statusConfig[client.status] ?? statusConfig.pending
-  const monthPosts = client.posts.filter(p => p.date.startsWith('2026-05')).length
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  const monthPosts = posts.filter(p => p.clientId === client.id && p.date.startsWith(currentMonth)).length
 
   return (
     <div

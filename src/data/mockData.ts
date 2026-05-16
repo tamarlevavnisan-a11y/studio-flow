@@ -1,4 +1,5 @@
 import type { QuickEvent, ClientDetail, Task, Notification, HealthData } from '../types'
+// posts field removed from ClientDetail — managed by PostsContext (Supabase)
 
 export const mockEvents: QuickEvent[] = [
   { id: '1', title: 'פגישת לקוח – נועה כהן', date: 'היום', time: '14:00', color: 'violet' },
@@ -43,13 +44,6 @@ export const mockClientDetails: ClientDetail[] = [
       { id: 'f1', name: 'ברושור מותג 2026.pdf', fileType: 'pdf', size: '2.4 MB', uploadedAt: '2026-04-15' },
       { id: 'f2', name: 'לוגו נועה כהן.png', fileType: 'image', size: '340 KB', uploadedAt: '2026-04-15' },
     ],
-    posts: [
-      { id: 'p1', title: 'פוסט קולקציית קיץ', platform: 'Instagram', date: '2026-05-18', time: '09:00', status: 'ready', type: 'image' },
-      { id: 'p2', title: 'ריל טרנד', platform: 'Instagram', date: '2026-05-21', time: '18:00', status: 'planned', type: 'reel' },
-      { id: 'p3', title: 'סטורי מכירה', platform: 'Instagram', date: '2026-05-24', time: '12:00', status: 'planned', type: 'story' },
-      { id: 'p4', title: 'BTS פוסט', platform: 'Instagram', date: '2026-05-14', time: '10:00', status: 'published', type: 'image' },
-      { id: 'p5', title: 'ריל behind the scenes', platform: 'Instagram', date: '2026-05-28', time: '17:00', status: 'planned', type: 'reel' },
-    ],
   },
   {
     id: '2',
@@ -80,12 +74,6 @@ export const mockClientDetails: ClientDetail[] = [
     ],
     files: [
       { id: 'f1', name: 'תוכנית תוכן מאי 2026.docx', fileType: 'doc', size: '128 KB', uploadedAt: '2026-05-01' },
-    ],
-    posts: [
-      { id: 'p1', title: '5 הרגלים', platform: 'TikTok', date: '2026-05-16', time: '18:00', status: 'planned', type: 'video' },
-      { id: 'p2', title: 'פוסט מוטיבציה', platform: 'TikTok', date: '2026-05-19', time: '12:00', status: 'planned', type: 'video' },
-      { id: 'p3', title: 'Q&A פרק 2', platform: 'TikTok', date: '2026-05-23', time: '20:00', status: 'planned', type: 'video' },
-      { id: 'p4', title: 'Q&A פרק 1', platform: 'TikTok', date: '2026-05-08', time: '18:00', status: 'published', type: 'video' },
     ],
   },
   {
@@ -118,12 +106,6 @@ export const mockClientDetails: ClientDetail[] = [
       { id: 'f2', name: 'תמונות אירועים מאי.zip', fileType: 'other', size: '45 MB', uploadedAt: '2026-05-05' },
       { id: 'f3', name: 'חוזה שיתוף פעולה.pdf', fileType: 'pdf', size: '256 KB', uploadedAt: '2026-02-01' },
     ],
-    posts: [
-      { id: 'p1', title: '10 שנים לעסק', platform: 'Facebook', date: '2026-05-05', time: '10:00', status: 'published', type: 'image' },
-      { id: 'p2', title: 'תפריט קיץ חדש', platform: 'Facebook', date: '2026-05-12', time: '11:00', status: 'published', type: 'image' },
-      { id: 'p3', title: 'מבצע יולי', platform: 'Facebook', date: '2026-05-20', time: '09:00', status: 'ready', type: 'image' },
-      { id: 'p4', title: 'סרטון בת מצווה', platform: 'Facebook', date: '2026-05-27', time: '18:00', status: 'planned', type: 'video' },
-    ],
   },
   {
     id: '4',
@@ -148,10 +130,6 @@ export const mockClientDetails: ClientDetail[] = [
     ],
     files: [
       { id: 'f1', name: 'לוגו שירה מזרחי Fitness.png', fileType: 'image', size: '180 KB', uploadedAt: '2026-01-15' },
-    ],
-    posts: [
-      { id: 'p1', title: 'פוסט חזרה לשגרה', platform: 'Instagram', date: '2026-06-01', time: '09:00', status: 'planned', type: 'image' },
-      { id: 'p2', title: 'ריל HIIT', platform: 'Instagram', date: '2026-06-05', time: '18:00', status: 'planned', type: 'reel' },
     ],
   },
 ]

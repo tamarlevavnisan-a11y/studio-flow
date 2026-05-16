@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { useCalendar } from '../../store/CalendarContext'
+import { usePosts } from '../../store/PostsContext'
 import { categoryConfig } from './categoryConfig'
 import EventDetailModal from './EventDetailModal'
 import AddEventModal from './AddEventModal'
-import type { CalendarEvent } from '../../types'
+import PostPreviewModal from './PostPreviewModal'
+import type { CalendarEvent, ScheduledPost } from '../../types'
+
+const PLATFORM_EMOJI: Record<string, string> = { Instagram: '📸', TikTok: '🎵', Facebook: '📘' }
 
 const START_HOUR = 7
 const END_HOUR   = 21
@@ -40,7 +44,9 @@ interface Props { date: Date }
 
 export default function WeekView({ date }: Props) {
   const { events } = useCalendar()
+  const { posts }  = usePosts()
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [selectedPost,  setSelectedPost]  = useState<ScheduledPost | null>(null)
   const [addDate, setAddDate] = useState<string | null>(null)
 
   const today = new Date()
@@ -49,13 +55,9 @@ export default function WeekView({ date }: Props) {
 
   const hours = Array.from({ length: TOTAL_HRS }, (_, i) => START_HOUR + i)
 
-  function dayEvents(day: Date) {
-    const ds = dateStr(day)
-    return events.filter(e => e.date === ds && !e.allDay)
-  }
-  function allDayEvents(day: Date) {
-    return events.filter(e => e.date === dateStr(day) && e.allDay)
-  }
+  function dayEvents(day: Date)    { const ds = dateStr(day); return events.filter(e => e.date === ds && !e.allDay) }
+  function allDayEvents(day: Date) { return events.filter(e => e.date === dateStr(day) && e.allDay) }
+  function dayPosts(day: Date)     { return posts.filter(p => p.date === dateStr(day)) }
 
   return (
     <div className="bg-white rounded-[20px] overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', direction: 'ltr' }}>
@@ -118,6 +120,7 @@ export default function WeekView({ date }: Props) {
           {/* Day columns */}
           {weekDays.map((day, di) => {
             const de = dayEvents(day)
+            const dp = dayPosts(day)
             const ds = dateStr(day)
             const isToday = ds === todayStr
             return (
@@ -132,7 +135,7 @@ export default function WeekView({ date }: Props) {
                     style={{ top: hi * HOUR_H }} />
                 ))}
 
-                {/* Events */}
+                {/* Calendar events */}
                 {de.map(ev => {
                   const cfg = categoryConfig[ev.category]
                   const top = eventTop(ev.startTime)
@@ -152,6 +155,22 @@ export default function WeekView({ date }: Props) {
                     </div>
                   )
                 })}
+
+                {/* Scheduled posts */}
+                {dp.map(post => {
+                  const top    = eventTop(post.time)
+                  const height = Math.max(28, HOUR_H * 0.5)
+                  return (
+                    <div key={post.id}
+                      onClick={e => { e.stopPropagation(); setSelectedPost(post) }}
+                      className="absolute inset-x-0.5 rounded-xl border-r-2 px-1.5 py-1 cursor-pointer hover:brightness-95 transition-all overflow-hidden bg-teal-50 border-teal-400"
+                      style={{ top, height, borderColor: '#2DD4BF' }}>
+                      <p className="text-[10px] font-600 leading-tight truncate text-teal-800">
+                        {PLATFORM_EMOJI[post.platform]} {post.time} {post.title}
+                      </p>
+                    </div>
+                  )
+                })}
               </div>
             )
           })}
@@ -159,7 +178,8 @@ export default function WeekView({ date }: Props) {
       </div>
 
       {selectedEvent && <EventDetailModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />}
-      {addDate && <AddEventModal initialDate={addDate} onClose={() => setAddDate(null)} />}
+      {selectedPost  && <PostPreviewModal  post={selectedPost}  onClose={() => setSelectedPost(null)} />}
+      {addDate       && <AddEventModal initialDate={addDate}    onClose={() => setAddDate(null)} />}
     </div>
   )
 }

@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { ExternalLink, MapPin } from 'lucide-react'
 import { useCalendar } from '../../store/CalendarContext'
+import { usePosts } from '../../store/PostsContext'
 import { categoryConfig } from './categoryConfig'
 import EventDetailModal from './EventDetailModal'
 import AddEventModal from './AddEventModal'
-import type { CalendarEvent } from '../../types'
+import PostPreviewModal from './PostPreviewModal'
+import type { CalendarEvent, ScheduledPost } from '../../types'
+
+const PLATFORM_EMOJI: Record<string, string> = { Instagram: '📸', TikTok: '🎵', Facebook: '📘' }
 
 const START_HOUR = 7
 const END_HOUR   = 21
@@ -19,12 +23,15 @@ interface Props { date: Date }
 
 export default function DayView({ date }: Props) {
   const { events } = useCalendar()
+  const { posts }  = usePosts()
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [selectedPost,  setSelectedPost]  = useState<ScheduledPost | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
 
   const ds = dateStr(date)
   const timedEvs  = events.filter(e => e.date === ds && !e.allDay)
   const allDayEvs = events.filter(e => e.date === ds && e.allDay)
+  const dayPosts  = posts.filter(p => p.date === ds)
   const hours = Array.from({ length: TOTAL_HRS }, (_, i) => START_HOUR + i)
 
   const dayName = date.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -124,7 +131,27 @@ export default function DayView({ date }: Props) {
               )
             })}
 
-            {timedEvs.length === 0 && (
+            {/* Scheduled posts */}
+            {dayPosts.map(post => {
+              const top    = eventTop(post.time)
+              const height = Math.max(40, HOUR_H * 0.55)
+              return (
+                <div key={post.id}
+                  onClick={() => setSelectedPost(post)}
+                  className="absolute inset-x-2 rounded-2xl border-r-4 p-3 cursor-pointer hover:brightness-95 transition-all bg-teal-50"
+                  style={{ top, height, borderColor: '#2DD4BF', direction: 'rtl' }}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base flex-shrink-0">{PLATFORM_EMOJI[post.platform] ?? '📱'}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-600 leading-snug truncate text-teal-800">{post.title}</p>
+                      <p className="text-xs text-teal-600/70 mt-0.5">{post.time} · {post.clientName}</p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+
+            {timedEvs.length === 0 && dayPosts.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center" style={{ direction: 'rtl' }}>
                 <p className="text-sm text-gray-300">אין אירועים ביום זה</p>
               </div>
@@ -134,7 +161,8 @@ export default function DayView({ date }: Props) {
       </div>
 
       {selectedEvent && <EventDetailModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />}
-      {addModalOpen && <AddEventModal initialDate={ds} onClose={() => setAddModalOpen(false)} />}
+      {selectedPost  && <PostPreviewModal  post={selectedPost}  onClose={() => setSelectedPost(null)} />}
+      {addModalOpen  && <AddEventModal initialDate={ds}         onClose={() => setAddModalOpen(false)} />}
     </div>
   )
 }

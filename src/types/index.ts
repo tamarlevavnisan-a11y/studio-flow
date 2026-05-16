@@ -116,21 +116,42 @@ export interface ClientFile {
   uploadedAt: string
 }
 
+export type PostContentType = 'post' | 'reel' | 'story' | 'carousel'
+export type PostPlatform    = 'Instagram' | 'TikTok' | 'Facebook'
+export type PostStatus      = 'pending' | 'published' | 'failed'
+
 export interface ScheduledPost {
   id: string
+  clientId: string
+  clientName: string
   title: string
-  platform: string
-  date: string
-  time: string
-  status: 'planned' | 'ready' | 'published'
-  type: 'image' | 'video' | 'reel' | 'story'
+  content: string
+  contentType: PostContentType
+  platform: PostPlatform
+  date: string      // YYYY-MM-DD
+  time: string      // HH:MM
+  status: PostStatus
+  mediaUrl?: string
+  createdAt: string
+}
+
+export interface BrandProfile {
+  primaryColor:     string   // hex e.g. '#F472B6'
+  secondaryColor:   string
+  fontHeading:      'Heebo' | 'Assistant' | 'Rubik' | 'Frank Ruhl Libre'
+  fontBody:         'Heebo' | 'Assistant' | 'Rubik' | 'Frank Ruhl Libre'
+  writingStyle:     string
+  marketingMessage: string
+  targetAudience:   string
+  tone:             'professional' | 'casual' | 'fun' | 'inspiring' | 'luxury'
+  keywords:         string[]
 }
 
 export interface ClientDetail extends Client {
-  scripts: Script[]
-  videos: VideoContent[]
-  files: ClientFile[]
-  posts: ScheduledPost[]
+  scripts:      Script[]
+  videos:       VideoContent[]
+  files:        ClientFile[]
+  brandProfile?: BrandProfile
 }
 
 export interface Task {

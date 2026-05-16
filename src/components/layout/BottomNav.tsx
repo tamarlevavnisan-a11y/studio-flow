@@ -1,13 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Calendar, Users, Heart, FolderOpen, LogOut } from 'lucide-react'
+import { Home, Calendar, Users, Heart, Wand2, LogOut } from 'lucide-react'
 import { useAuth } from '../../store/AuthContext'
 
 const navItems = [
-  { to: '/',         icon: Home,       label: 'בית',     activeColor: 'text-violet-500', activeDot: 'bg-lavender' },
-  { to: '/calendar', icon: Calendar,   label: 'יומן',    activeColor: 'text-violet-500', activeDot: 'bg-lavender' },
-  { to: '/clients',  icon: Users,      label: 'לקוחות',  activeColor: 'text-pink-500',   activeDot: 'bg-dusty-pink' },
-  { to: '/health',   icon: Heart,      label: 'בריאות',  activeColor: 'text-emerald-500',activeDot: 'bg-mint' },
-  { to: '/projects', icon: FolderOpen, label: 'פרויקטים',activeColor: 'text-orange-500', activeDot: 'bg-peach' },
+  { to: '/',        icon: Home,     label: 'בית',       activeColor: 'text-violet-500', activeDot: 'bg-lavender' },
+  { to: '/calendar',icon: Calendar, label: 'יומן',      activeColor: 'text-violet-500', activeDot: 'bg-lavender' },
+  { to: '/clients', icon: Users,    label: 'לקוחות',    activeColor: 'text-pink-500',   activeDot: 'bg-dusty-pink' },
+  { to: '/studio',  icon: Wand2,    label: 'AI',        activeColor: 'text-violet-600', activeDot: 'bg-lavender' },
+  { to: '/health',  icon: Heart,    label: 'בריאות',    activeColor: 'text-emerald-500',activeDot: 'bg-mint' },
 ]
 
 export default function BottomNav() {

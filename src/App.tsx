@@ -9,9 +9,12 @@ import HealthPage from './pages/HealthPage'
 import ProjectsPage from './pages/ProjectsPage'
 import QuickPage from './pages/QuickPage'
 import AuthPage from './pages/AuthPage'
+import AdminPage   from './pages/AdminPage'
+import StudioAIPage from './pages/StudioAIPage'
 import { ClientsProvider }   from './store/ClientsContext'
 import { CalendarProvider }  from './store/CalendarContext'
 import { NutritionProvider } from './store/NutritionContext'
+import { PostsProvider }     from './store/PostsContext'
 import { AuthProvider, useAuth } from './store/AuthContext'
 
 // ── Loading spinner ───────────────────────────────────────────────────────────
@@ -54,6 +57,7 @@ function AppRoutes() {
           <NutritionProvider>
             <CalendarProvider>
               <ClientsProvider>
+                <PostsProvider>
                 <Layout>
                   <Routes>
                     <Route path="/"            element={<Dashboard />} />
@@ -63,9 +67,12 @@ function AppRoutes() {
                     <Route path="/health"      element={<HealthPage />} />
                     <Route path="/projects"    element={<ProjectsPage />} />
                     <Route path="/quick"       element={<QuickPage />} />
+                    <Route path="/admin"       element={<AdminPage />} />
+                    <Route path="/studio"      element={<StudioAIPage />} />
                     <Route path="*"            element={<Navigate to="/" replace />} />
                   </Routes>
                 </Layout>
+                </PostsProvider>
               </ClientsProvider>
             </CalendarProvider>
           </NutritionProvider>

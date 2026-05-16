@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Calendar, Users, Heart, FolderOpen, Zap, Sparkles, LogOut, Crown } from 'lucide-react'
+import { Home, Calendar, Users, Heart, FolderOpen, Zap, Sparkles, LogOut, Crown, Wand2 } from 'lucide-react'
 import { useAuth } from '../../store/AuthContext'
 
 const navItems = [
   { to: '/',         icon: Home,       label: 'בית',         iconColor: 'text-violet-400', activeBg: 'bg-lavender-light' },
   { to: '/calendar', icon: Calendar,   label: 'לוח שנה',     iconColor: 'text-violet-400', activeBg: 'bg-lavender-light' },
   { to: '/clients',  icon: Users,      label: 'לקוחות',      iconColor: 'text-pink-400',   activeBg: 'bg-dusty-pink-light' },
+  { to: '/studio',   icon: Wand2,      label: 'Studio AI',   iconColor: 'text-violet-500', activeBg: 'bg-lavender-light' },
   { to: '/health',   icon: Heart,      label: 'בריאות',      iconColor: 'text-emerald-500',activeBg: 'bg-mint-light' },
   { to: '/projects', icon: FolderOpen, label: 'פרויקטים',   iconColor: 'text-orange-400', activeBg: 'bg-peach-light' },
   { to: '/quick',    icon: Zap,        label: 'גישה מהירה', iconColor: 'text-yellow-500', activeBg: 'bg-butter-light' },
@@ -58,6 +59,27 @@ export default function Sidebar() {
             )}
           </NavLink>
         ))}
+
+        {/* Admin link — visible only to admin */}
+        {isAdmin && (
+          <NavLink to="/admin"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 ${
+                isActive ? 'bg-lavender-light text-gray-800' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+              }`
+            }>
+            {({ isActive }) => (
+              <>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+                  isActive ? 'bg-white shadow-sm' : 'bg-transparent'
+                }`}>
+                  <Crown size={16} className={isActive ? 'text-violet-400' : 'text-gray-400'} />
+                </div>
+                <span>ניהול משתמשים</span>
+              </>
+            )}
+          </NavLink>
+        )}
       </nav>
 
       {/* User footer */}

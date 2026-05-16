@@ -1,9 +1,16 @@
 import { useState } from 'react'
 import { useCalendar } from '../../store/CalendarContext'
+import { usePosts } from '../../store/PostsContext'
 import { categoryConfig } from './categoryConfig'
 import EventDetailModal from './EventDetailModal'
 import AddEventModal from './AddEventModal'
-import type { CalendarEvent } from '../../types'
+import PostPreviewModal from './PostPreviewModal'
+import type { CalendarEvent, ScheduledPost } from '../../types'
+
+const PLATFORM_EMOJI: Record<string, string> = { Instagram: '📸', TikTok: '🎵', Facebook: '📘' }
+const POST_STATUS_DOT: Record<string, string> = {
+  pending: 'bg-amber-400', published: 'bg-teal-400', failed: 'bg-red-400',
+}
 
 const DAY_NAMES = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'] // Sun–Sat
 
@@ -15,8 +22,10 @@ interface Props {
 }
 
 export default function MonthView({ year, month }: Props) {
-  const { events } = useCalendar()
+  const { events }  = useCalendar()
+  const { posts }   = usePosts()
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [selectedPost,  setSelectedPost]  = useState<ScheduledPost | null>(null)
   const [addDate, setAddDate] = useState<string | null>(null)
 
   const today = new Date()
@@ -37,9 +46,8 @@ export default function MonthView({ year, month }: Props) {
     return `${year}-${pad(month + 1)}-${pad(day)}`
   }
 
-  function dayEvents(day: number) {
-    return events.filter(e => e.date === dayStr(day))
-  }
+  function dayEvents(day: number) { return events.filter(e => e.date === dayStr(day)) }
+  function dayPosts(day: number)  { return posts.filter(p => p.date === dayStr(day)) }
 
   return (
     <div className="bg-white rounded-[20px] overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
@@ -59,6 +67,8 @@ export default function MonthView({ year, month }: Props) {
           const isToday = ds === todayStr
           const allDayEvs = de.filter(e => e.allDay)
           const timedEvs  = de.filter(e => !e.allDay)
+          const dp        = dayPosts(day)
+          const totalExtra = Math.max(0, timedEvs.length - 2) + Math.max(0, dp.length - 1)
 
           return (
             <div
@@ -89,7 +99,7 @@ export default function MonthView({ year, month }: Props) {
                 )
               })}
 
-              {/* Timed events — max 2, then +N */}
+              {/* Timed events — max 2 */}
               {timedEvs.slice(0, 2).map(ev => {
                 const cfg = categoryConfig[ev.category]
                 return (
@@ -101,20 +111,28 @@ export default function MonthView({ year, month }: Props) {
                   </div>
                 )
               })}
-              {timedEvs.length > 2 && (
-                <div className="text-[10px] text-gray-400 px-1.5">+{timedEvs.length - 2} נוספים</div>
+
+              {/* Scheduled posts — max 1 */}
+              {dp.slice(0, 1).map(post => (
+                <div key={post.id}
+                  onClick={e => { e.stopPropagation(); setSelectedPost(post) }}
+                  className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-lg mb-0.5 cursor-pointer bg-teal-100 text-teal-700 truncate">
+                  <span className={`flex-shrink-0 w-1 h-1 rounded-full ${POST_STATUS_DOT[post.status]}`} />
+                  <span className="truncate">{PLATFORM_EMOJI[post.platform]} {post.time} {post.title}</span>
+                </div>
+              ))}
+
+              {totalExtra > 0 && (
+                <div className="text-[10px] text-gray-400 px-1.5">+{totalExtra} נוספים</div>
               )}
             </div>
           )
         })}
       </div>
 
-      {selectedEvent && (
-        <EventDetailModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-      )}
-      {addDate && (
-        <AddEventModal initialDate={addDate} onClose={() => setAddDate(null)} />
-      )}
+      {selectedEvent && <EventDetailModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />}
+      {selectedPost  && <PostPreviewModal  post={selectedPost}  onClose={() => setSelectedPost(null)} />}
+      {addDate       && <AddEventModal initialDate={addDate}    onClose={() => setAddDate(null)} />}
     </div>
   )
 }

@@ -27,11 +27,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes — also sync profile row so admin can list all users
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        supabase.from('profiles').upsert(
+          { id: session.user.id, email: session.user.email! },
+          { onConflict: 'id' }
+        )
+      }
     })
 
     return () => subscription.unsubscribe()
