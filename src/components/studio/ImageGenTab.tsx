@@ -55,7 +55,8 @@ export default function ImageGenTab({ client }: Props) {
       setImageUrl(url)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'שגיאה ביצירת תמונה'
-      if (msg.includes('loading')) setError('המודל בטעינה (30 שניות) — נסי שוב')
+      if (msg.includes('loading') || msg.includes('estimated_time')) setError('המודל בטעינה — המתיני 20 שניות ונסי שוב')
+      else if (msg.includes('Authorization') || msg.includes('403') || msg.includes('gated')) setError('יש לאשר את המודל ב-huggingface.co/black-forest-labs/FLUX.1-schnell (כניסה → Accept license)')
       else setError(msg)
     } finally {
       setLoading(false)
