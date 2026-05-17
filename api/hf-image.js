@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   let hfRes
   try {
     hfRes = await fetch(
-      `https://api-inference.huggingface.co/models/${model}`,
+      `https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell`,
       {
         method: 'POST',
         headers: {
