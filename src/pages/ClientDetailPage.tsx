@@ -164,7 +164,7 @@ export default function ClientDetailPage() {
         {activeTab === 'scripts'  && <ScriptsTab     clientId={client.id} scripts={client.scripts} />}
         {activeTab === 'videos'   && <VideosTab      clientId={client.id} videos={client.videos} />}
         {activeTab === 'files'    && <FilesTab       clientId={client.id} files={client.files} />}
-        {activeTab === 'calendar' && <PostCalendarTab clientId={client.id} clientName={client.name} clientPlatform={client.platform} />}
+        {activeTab === 'calendar' && <PostCalendarTab clientId={client.id} clientName={client.name} clientPlatform={client.platform} clientAvatar={client.avatar} />}
       </div>
     </div>
   )

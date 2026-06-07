@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(npx tsc *)",
+      "PowerShell(Set-Content *)",
+      "Bash(npm run *)",
+      "Bash(Get-Content \"C:\\\\Users\\\\tamar\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-tamar-studio-flow\\\\b3a6cc88-22e9-49a6-bdbf-ec57a0243b02\\\\tasks\\\\b3ls9y1n9.output\")",
+      "Bash(vercel --version)",
+      "PowerShell(npx vercel --version 2>&1 | Select-Object -First 3)",
+      "PowerShell(npx vercel env add VITE_HUGGING_FACE_API_KEY 2>&1 | Select-Object -First 10)",
+      "Bash(npx kill-port *)",
+      "Read(//mnt/c/Users/tamar/**)",
+      "PowerShell(Start-Process -NoNewWindow -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -WorkingDirectory \"C:\\\\Users\\\\tamar\\\\studio-flow\"; Start-Sleep 5; $null)",
+      "PowerShell(npm install *)",
+      "Read(//c/Users/tamar/**)",
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(git init *)",
+      "PowerShell(Set-Clipboard *)",
+      "PowerShell(Start-Process notepad \"C:\\\\Users\\\\tamar\\\\lead-machine\\\\supabase_schema.sql\")",
+      "Bash(git *)",
+      "Bash(dir *)",
+      "Bash(PowerShell *)"
+    ]
+  }
+}

@@ -7,14 +7,26 @@ interface PostsContextType {
   posts: ScheduledPost[]
   loading: boolean
   addPost: (data: Omit<ScheduledPost, 'id' | 'createdAt'>) => Promise<void>
-  updatePost: (id: string, updates: Partial<Pick<ScheduledPost, 'status' | 'title' | 'content' | 'date' | 'time' | 'platform' | 'contentType'>>) => Promise<void>
+  updatePost: (id: string, updates: Partial<Pick<ScheduledPost, 'status' | 'title' | 'content' | 'date' | 'time' | 'platform' | 'platforms' | 'contentType'>>) => Promise<void>
   deletePost: (id: string) => Promise<void>
   uploadMedia: (file: File) => Promise<string | null>
 }
 
 const PostsContext = createContext<PostsContextType | null>(null)
 
+function parsePlatforms(raw: string): { platform: ScheduledPost['platform']; platforms: ScheduledPost['platforms'] } {
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return { platform: parsed[0] as ScheduledPost['platform'], platforms: parsed as ScheduledPost['platforms'] }
+    }
+  } catch { /* not JSON */ }
+  const p = raw as ScheduledPost['platform']
+  return { platform: p, platforms: [p] }
+}
+
 function rowToPost(row: Record<string, unknown>): ScheduledPost {
+  const { platform, platforms } = parsePlatforms(row.platform as string)
   return {
     id:          row.id as string,
     clientId:    row.client_id as string,
@@ -22,7 +34,8 @@ function rowToPost(row: Record<string, unknown>): ScheduledPost {
     title:       row.title as string,
     content:     (row.content as string) ?? '',
     contentType: row.content_type as ScheduledPost['contentType'],
-    platform:    row.platform as ScheduledPost['platform'],
+    platform,
+    platforms,
     date:        row.scheduled_date as string,
     time:        (row.scheduled_time as string).slice(0, 5),
     status:      row.status as PostStatus,
@@ -54,6 +67,8 @@ export function PostsProvider({ children }: { children: ReactNode }) {
 
   async function addPost(data: Omit<ScheduledPost, 'id' | 'createdAt'>) {
     if (!user) return
+    // Store platforms array as JSON in the platform column
+    const platformsArr = data.platforms?.length ? data.platforms : [data.platform]
     const { data: row, error } = await supabase
       .from('scheduled_posts')
       .insert({
@@ -63,7 +78,7 @@ export function PostsProvider({ children }: { children: ReactNode }) {
         title:          data.title,
         content:        data.content,
         content_type:   data.contentType,
-        platform:       data.platform,
+        platform:       JSON.stringify(platformsArr),
         scheduled_date: data.date,
         scheduled_time: data.time + ':00',
         status:         data.status,
@@ -74,17 +89,26 @@ export function PostsProvider({ children }: { children: ReactNode }) {
     if (!error && row) setPosts(ps => [...ps, rowToPost(row)])
   }
 
-  async function updatePost(id: string, updates: Partial<Pick<ScheduledPost, 'status' | 'title' | 'content' | 'date' | 'time' | 'platform' | 'contentType'>>) {
+  async function updatePost(id: string, updates: Partial<Pick<ScheduledPost, 'status' | 'title' | 'content' | 'date' | 'time' | 'platform' | 'platforms' | 'contentType'>>) {
     const dbMap: Record<string, unknown> = {}
     if (updates.status      !== undefined) dbMap.status         = updates.status
     if (updates.title       !== undefined) dbMap.title          = updates.title
     if (updates.content     !== undefined) dbMap.content        = updates.content
     if (updates.date        !== undefined) dbMap.scheduled_date = updates.date
     if (updates.time        !== undefined) dbMap.scheduled_time = updates.time + ':00'
-    if (updates.platform    !== undefined) dbMap.platform       = updates.platform
     if (updates.contentType !== undefined) dbMap.content_type   = updates.contentType
+    // Handle platforms update
+    if (updates.platforms !== undefined) {
+      dbMap.platform = JSON.stringify(updates.platforms)
+    } else if (updates.platform !== undefined) {
+      dbMap.platform = JSON.stringify([updates.platform])
+    }
     await supabase.from('scheduled_posts').update(dbMap).eq('id', id)
-    setPosts(ps => ps.map(p => p.id === id ? { ...p, ...updates } : p))
+    setPosts(ps => ps.map(p => {
+      if (p.id !== id) return p
+      const newPlatforms = updates.platforms ?? (updates.platform ? [updates.platform] : p.platforms)
+      return { ...p, ...updates, platforms: newPlatforms, platform: newPlatforms[0] }
+    }))
   }
 
   async function deletePost(id: string) {

@@ -118,7 +118,7 @@ export default function MonthView({ year, month }: Props) {
                   onClick={e => { e.stopPropagation(); setSelectedPost(post) }}
                   className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-lg mb-0.5 cursor-pointer bg-teal-100 text-teal-700 truncate">
                   <span className={`flex-shrink-0 w-1 h-1 rounded-full ${POST_STATUS_DOT[post.status]}`} />
-                  <span className="truncate">{PLATFORM_EMOJI[post.platform]} {post.time} {post.title}</span>
+                  <span className="truncate">{PLATFORM_EMOJI[post.platforms?.[0] ?? post.platform]} {post.time} {post.title}</span>
                 </div>
               ))}
 

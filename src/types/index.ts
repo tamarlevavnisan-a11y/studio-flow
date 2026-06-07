@@ -127,12 +127,24 @@ export interface ScheduledPost {
   title: string
   content: string
   contentType: PostContentType
-  platform: PostPlatform
+  platform: PostPlatform    // primary platform (platforms[0]) — kept for compat
+  platforms: PostPlatform[] // all selected platforms
   date: string      // YYYY-MM-DD
   time: string      // HH:MM
   status: PostStatus
   mediaUrl?: string
   createdAt: string
+}
+
+export interface InstagramConnection {
+  id:             string
+  clientId:       string
+  igUserId:       string
+  igUsername:     string
+  pageId:         string
+  accessToken:    string
+  tokenExpiresAt?: string
+  createdAt:      string
 }
 
 export interface BrandProfile {

@@ -42,10 +42,14 @@ export default function PostPreviewModal({ post, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
           <div className="flex items-center gap-2">
-            <span className="text-base">{PLATFORM_EMOJI[post.platform] ?? '📱'}</span>
+            <div className="flex gap-0.5">
+              {(post.platforms ?? [post.platform]).map(pl => (
+                <span key={pl} className="text-base">{PLATFORM_EMOJI[pl] ?? '📱'}</span>
+              ))}
+            </div>
             <div dir="rtl">
               <p className="text-sm font-600 text-gray-800 leading-tight">{post.title}</p>
-              <p className="text-[10px] text-gray-400">{post.platform} · {CONTENT_LABEL[post.contentType] ?? post.contentType} · {post.clientName}</p>
+              <p className="text-[10px] text-gray-400">{(post.platforms ?? [post.platform]).join(' · ')} · {CONTENT_LABEL[post.contentType] ?? post.contentType} · {post.clientName}</p>
             </div>
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 transition-colors flex-shrink-0">

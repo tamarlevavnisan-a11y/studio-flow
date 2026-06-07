@@ -11,10 +11,12 @@ import QuickPage from './pages/QuickPage'
 import AuthPage from './pages/AuthPage'
 import AdminPage   from './pages/AdminPage'
 import StudioAIPage from './pages/StudioAIPage'
+import InstagramCallbackPage from './pages/InstagramCallbackPage'
 import { ClientsProvider }   from './store/ClientsContext'
 import { CalendarProvider }  from './store/CalendarContext'
 import { NutritionProvider } from './store/NutritionContext'
 import { PostsProvider }     from './store/PostsContext'
+import { InstagramProvider } from './store/InstagramContext'
 import { AuthProvider, useAuth } from './store/AuthContext'
 
 // ── Loading spinner ───────────────────────────────────────────────────────────
@@ -51,6 +53,15 @@ function AppRoutes() {
       {/* Public */}
       <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
 
+      {/* OAuth callback — renders full-screen, outside the dashboard layout */}
+      <Route path="/instagram/callback" element={
+        <RequireAuth>
+          <InstagramProvider>
+            <InstagramCallbackPage />
+          </InstagramProvider>
+        </RequireAuth>
+      } />
+
       {/* Protected */}
       <Route path="/*" element={
         <RequireAuth>
@@ -58,6 +69,7 @@ function AppRoutes() {
             <CalendarProvider>
               <ClientsProvider>
                 <PostsProvider>
+                <InstagramProvider>
                 <Layout>
                   <Routes>
                     <Route path="/"            element={<Dashboard />} />
@@ -72,6 +84,7 @@ function AppRoutes() {
                     <Route path="*"            element={<Navigate to="/" replace />} />
                   </Routes>
                 </Layout>
+                </InstagramProvider>
                 </PostsProvider>
               </ClientsProvider>
             </CalendarProvider>
