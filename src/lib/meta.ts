@@ -1,7 +1,7 @@
 // Helpers for the Facebook Login (Meta Graph API) OAuth flow used to connect
 // a client's Instagram Business account.
 
-export const META_APP_ID = import.meta.env.VITE_META_APP_ID as string | undefined
+export const META_APP_ID = (import.meta.env.VITE_META_APP_ID as string | undefined) || '3530311200453229'
 
 export const META_GRAPH_VERSION = 'v21.0'
 
